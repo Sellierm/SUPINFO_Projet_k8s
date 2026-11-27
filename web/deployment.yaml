@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: web
 spec:
-  # Pas de champ replicas : c'est le HPA qui décide du nombre de Pods
   selector:
     matchLabels:
       app: web
