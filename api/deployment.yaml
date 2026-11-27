@@ -18,7 +18,7 @@ spec:
         runAsUser: 65534
       containers:
         - name: whoami
-          image: traefik/whoami:v9.999 
+          image: traefik/whoami:v9.99
           args: ["--port", "8080"]
           ports:
             - containerPort: 8080
