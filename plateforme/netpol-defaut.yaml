@@ -1,0 +1,30 @@
+#Tout est interdit en entrée
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: refuser-tout-en-entree
+spec:
+  podSelector: {} # tous les Pods du namespace
+  policyTypes:
+    - Ingress
+---
+#Traefik web et api sur le port 8080
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: autoriser-traefik
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["web", "api"]
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 8080
