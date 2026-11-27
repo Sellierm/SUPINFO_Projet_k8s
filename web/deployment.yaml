@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  # Pas de champ replicas : c'est le HPA qui décide du nombre de Pods
+  selector:
+    matchLabels:
+      app: web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.28-alpine
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true     # le conteneur ne peut écrire nulle part...
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: contenu
+              mountPath: /usr/share/nginx/html
+            - name: tmp
+              mountPath: /tmp                # ...sauf dans /tmp, où nginx a besoin d'écrire
+      volumes:
+        - name: contenu
+          configMap:
+            name: web-contenu
+        - name: tmp
+          emptyDir:
+            sizeLimit: 50Mi
